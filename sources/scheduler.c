@@ -6,7 +6,7 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 23:42:17 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/25 23:09:11 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/26 15:04:47 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ long long	get_priority(t_coder *coder)
 }
 
 /* Returns 1 if element at index i should be swapped with parent p.
-   Lower priority value = higher urgency. Tie-breaks by coder_id. */
+   Lower priority value = higher urgency. Tie-breaks by coder_id. !! */
 int	should_swap(t_heap *heap, int i, int p)
 {
 	if (heap->data[i].priority < heap->data[p].priority)
@@ -49,7 +49,7 @@ void	bubble_up(t_heap *heap, int i)
 }
 
 /* Returns the index (a or b) whose element has higher priority.
-   Uses the same ordering as should_swap. */
+   Uses the same ordering as should_swap. !! */
 int	highest_priority(t_heap *heap, int a, int b)
 {
 	if (heap->data[a].priority < heap->data[b].priority)
