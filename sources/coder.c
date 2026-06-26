@@ -6,12 +6,14 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 23:11:03 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/13 21:31:53 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 22:54:58 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Acquires both dongles in a consistent order (lower id first) to avoid
+   deadlock. Returns 1 on success, 0 if the sim stopped mid-acquire */
 static int	acquire_dongles(t_coder *coder)
 {
 	t_dongle	*first;
@@ -39,6 +41,8 @@ static int	acquire_dongles(t_coder *coder)
 	return (1);
 }
 
+/* Records the compile start time, sleeps for time_to_compile ms,
+   then releases both dongles so neighbours can proceed */
 static void	do_compile(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->compile_mutex);
@@ -50,6 +54,8 @@ static void	do_compile(t_coder *coder)
 	release_dongle(coder->right_dongle);
 }
 
+/* Runs the debug + refactor phases after a compile and increments the
+   compile counter under its own mutex */
 static void	do_debug_refactor(t_coder *coder)
 {
 	log_status(coder, "is debugging");
@@ -61,6 +67,8 @@ static void	do_debug_refactor(t_coder *coder)
 	pthread_mutex_unlock(&coder->compile_mutex);
 }
 
+/* Main loop for a coder thread: acquire dongles → compile → debug/refactor,
+   repeating until the monitor signals a stop */
 void	*coder_routine(void *arg)
 {
 	t_coder	*coder;

@@ -6,12 +6,13 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 21:48:15 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/08 14:51:30 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 22:55:53 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Sets up one dongle: id, flags, mutex, cond, and its priority queue */
 static int	init_one_dongle(t_dongle *dongle, int id, int nb_coders)
 {
 	dongle->id = id;
@@ -24,6 +25,7 @@ static int	init_one_dongle(t_dongle *dongle, int id, int nb_coders)
 	return (0);
 }
 
+/* Allocates and initialises all nb_coders dongles */
 int	init_dongles(t_sim *sim)
 {
 	int	i;
@@ -41,6 +43,8 @@ int	init_dongles(t_sim *sim)
 	return (0);
 }
 
+/* Allocates coders and assigns each one a left dongle (i) and a right
+   dongle ((i+1) % nb_coders), creating the circular sharing structure */
 int	init_coders(t_sim *sim)
 {
 	int	i;
@@ -64,6 +68,8 @@ int	init_coders(t_sim *sim)
 	return (0);
 }
 
+/* Records the start time, initialises shared mutexes, then sets up
+   dongles and coders */
 int	init_sim(t_sim *sim)
 {
 	sim->start_time = get_time_ms();
@@ -77,6 +83,7 @@ int	init_sim(t_sim *sim)
 	return (0);
 }
 
+/* Spawns all coder threads and the monitor thread, then joins them all */
 int	launch_sim(t_sim *sim)
 {
 	pthread_t	monitor;

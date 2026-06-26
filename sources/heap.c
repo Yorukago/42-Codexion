@@ -6,12 +6,15 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/08 14:43:50 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/11 20:29:22 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 22:55:32 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Removes and returns the root (highest-priority) element
+   Replaces it with the last element and sifts down to restore order
+   Returns a zeroed waiter if the heap is empty. */
 t_waiter	heap_pop(t_heap *heap)
 {
 	t_waiter	root;
@@ -25,6 +28,7 @@ t_waiter	heap_pop(t_heap *heap)
 	return (root);
 }
 
+/* Allocates the backing array. Returns -1 on malloc failure */
 int	heap_init(t_heap *heap, int capacity)
 {
 	heap->data = malloc(sizeof(t_waiter) * capacity);
@@ -35,6 +39,8 @@ int	heap_init(t_heap *heap, int capacity)
 	return (0);
 }
 
+/* Returns the root without removing it
+   Returns {-1, -1} if the heap is empty */
 t_waiter	heap_peek(t_heap *heap)
 {
 	t_waiter	empty;
@@ -48,6 +54,7 @@ t_waiter	heap_peek(t_heap *heap)
 	return (heap->data[0]);
 }
 
+/* Appends the new element at the end and sifts it up */
 void	heap_push(t_heap *heap, int coder_id, long long priority)
 {
 	heap->data[heap->size].coder_id = coder_id;
@@ -56,6 +63,7 @@ void	heap_push(t_heap *heap, int coder_id, long long priority)
 	bubble_up(heap, heap->size - 1);
 }
 
+/* Swaps two elements by index. Used by bubble_up / bubble_down */
 void	heap_swap(t_heap *heap, int a, int b)
 {
 	t_waiter	tmp;

@@ -20,21 +20,28 @@ Imagine walking clockwise around the table. You alternate **coder → dongle →
   Coder 1       Dongle 0       Coder 2       Dongle 1       Coder 3   …   Coder N       Dongle N-1
      o──────────────●──────────────o──────────────●──────────────o  ~  o──────────────●────────────── |
      ^                                                                                                |
-     └──────────────────────────── closes back to Coder 1 ────────────────────────────────────────────┘
+     └──────────────────────────────────  closes back to Coder 1 ─────────────────────────────────────┘
 ```
 
 Each **dongle d** (with `d` from `0` to `N - 1`) sits between two seats: it is the **left** dongle of **coder d + 1** and the **right** dongle of **coder d**, where **coder 0** in that formula means **coder N** so that **dongle 0** lies between **coder N** and **coder 1**. Compiling always needs **two adjacent dongles** at once—the two on either side of that coder’s chair.
 
-### Tiny example for N = 4
+### Tiny example for N = 4 (taken from another repo for better understanding <3)
 
 ```text
-        +---------+     +---------+     +---------+     +---------+
-        | Coder 1 |     | Coder 2 |     | Coder 3 |     | Coder 4 |
-        +----+----+     +----+----+     +----+----+     +----+----+
-    	|      \           /      \     /         \     /         |
-        |       [D0]     [D1]       [D2]            [D3]          |
-        |                                        				  |  
-    	+---------------------------------------------------------+
+					 CODER 1
+					(Compile)
+					/		\
+			Dongle D		Dongle A
+		(Taken by 1)		(Taken by 1)
+			 /					   \
+		  CODER 4				  CODER 2
+	(Wait Dongle D)        	   (Wait Dongle A)
+			\                     /
+		  Dongle C            Dongle B
+		(Taken by 4)     	(Taken by 2)
+					\       /
+					 CODER 3
+					  (Wait)
 ```
 
 - **Coder 1** needs dongles **0** (left) and **1** (right).  

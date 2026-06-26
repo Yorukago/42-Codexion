@@ -6,12 +6,20 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 21:32:39 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/08 14:36:25 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 22:56:38 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/*
+ * ft_atoi_strict:
+ *  - str: input string containing digits
+ *  - out: output parameter; pointer to an int where the parsed value will
+ *         be stored on success. Caller must provide a valid int*
+ *  - returns 0 on success (and sets *out),
+ *    -1 on error (and leaves *out unspecified)
+ */
 int	ft_atoi_strict(const char *str, int *out)
 {
 	int	i;

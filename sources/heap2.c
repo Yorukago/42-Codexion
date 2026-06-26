@@ -6,12 +6,14 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/11 20:29:04 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/11 20:29:29 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 22:55:40 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Removes the element at idx by replacing it with the last element,
+   then re-heapifies both up and down to restore order */
 static void	heap_remove_at(t_heap *heap, int idx)
 {
 	if (idx < 0 || idx >= heap->size)
@@ -25,6 +27,8 @@ static void	heap_remove_at(t_heap *heap, int idx)
 	}
 }
 
+/* Finds the first entry with the given coder_id and removes it
+   Exits after the first match since each coder appears at most once */
 void	heap_remove_by_coder_id(t_heap *heap, int coder_id)
 {
 	int	i;

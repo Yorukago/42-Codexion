@@ -6,7 +6,7 @@
 #    By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/05/29 13:28:38 by jzorreta          #+#    #+#              #
-#    Updated: 2026/05/29 13:28:39 by jzorreta         ###   ########.fr        #
+#    Updated: 2026/06/25 23:41:26 by jzorreta         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,16 +67,8 @@ fclean: clean
 
 re: fclean all
 
+tests: all
+	@chmod +x tests.sh
+	@./tests.sh
 
-# !! make ur repo private so...wait i cant make it private cuz curl doesnt work on private repos? idk man just make it work or smth soon 
-
-# demo: $(NAME)
-# 	@bash demo_scheduler.sh ./$(NAME)
-
-# demo-walk: $(NAME)
-# 	@DEMO_PAUSE=1 bash demo_scheduler.sh ./$(NAME)
-
-# demo-keys: $(NAME)
-# 	@DEMO_INTERACTIVE=1 bash demo_scheduler.sh ./$(NAME)
-
-.PHONY: all clean fclean re demo demo-walk demo-keys
+.PHONY: all clean fclean re tests

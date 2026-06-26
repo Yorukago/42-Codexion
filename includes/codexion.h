@@ -6,7 +6,7 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/06 19:42:52 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/11 20:31:48 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 23:09:30 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,6 +126,7 @@ int					parse_args(int argc, char **argv, t_sim *sim);
 int					ft_atoi_strict(const char *str, int *out);
 
 /* scheduler.c */
+long long			get_priority(t_coder *coder);
 int					should_swap(t_heap *heap, int i, int p);
 void				bubble_up(t_heap *heap, int i);
 int					highest_priority(t_heap *heap, int a, int b);

@@ -6,12 +6,14 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 23:22:24 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/05/11 20:31:04 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/25 21:48:12 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Returns 1 if coder i has not compiled within time_to_burnout ms.
+   Logs the burnout and sets the global stop flag before returning. */
 int	check_burnout(t_sim *sim, int i)
 {
 	long long	last;
@@ -28,6 +30,7 @@ int	check_burnout(t_sim *sim, int i)
 	return (0);
 }
 
+/* Returns 1 if every coder has reached nb_compiles_required. */
 int	check_all_finished(t_sim *sim)
 {
 	int	i;
@@ -46,6 +49,7 @@ int	check_all_finished(t_sim *sim)
 	return (1);
 }
 
+/* Thread-safe read of the stopped flag. */
 int	check_stop(t_sim *sim)
 {
 	int	stopped;
@@ -56,6 +60,8 @@ int	check_stop(t_sim *sim)
 	return (stopped);
 }
 
+/* Sets the stopped flag and broadcasts on every dongle's cond so that
+   threads blocked in wait_for_dongle wake up and exit cleanly. */
 void	set_stopped(t_sim *sim)
 {
 	int	i;
@@ -73,6 +79,7 @@ void	set_stopped(t_sim *sim)
 	}
 }
 
+/* Monitor thread: polls for burnouts and completion every 0.5 ms. */
 void	*monitor_routine(void *arg)
 {
 	t_sim	*sim;
