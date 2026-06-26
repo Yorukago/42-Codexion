@@ -6,7 +6,7 @@
 #    By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/05/29 13:28:38 by jzorreta          #+#    #+#              #
-#    Updated: 2026/06/26 21:41:18 by jzorreta         ###   ########.fr        #
+#    Updated: 2026/06/26 21:43:27 by jzorreta         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 
 clean:
 	@rm -rf $(OBJ_DIR)
-# 	@rm -rf tests.sh
+ 	@rm -rf tests.sh
 	@printf "$(PINK)Objects vanished!$(RESET)\n"
 
 fclean: clean
@@ -69,7 +69,7 @@ fclean: clean
 re: fclean all
 
 tests: all
-	@curl -lsSf https://raw.githubusercontent.com/jzorreta/42-Codexion/main/tests.sh -o tests.sh
+	@curl -LsSf https://raw.githubusercontent.com/Yorukago/42-Codexion/main/tests.sh -o tests.sh
 	@chmod +x tests.sh
 	@./tests.sh
 
