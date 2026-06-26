@@ -82,7 +82,11 @@ void	*coder_routine(void *arg)
 			continue ;
 		}
 		if (check_stop(coder->sim))
+		{
+			release_dongle(coder->left_dongle);
+			release_dongle(coder->right_dongle);
 			break ;
+		}
 		do_compile(coder);
 		do_debug_refactor(coder);
 	}

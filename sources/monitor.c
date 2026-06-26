@@ -23,8 +23,8 @@ int	check_burnout(t_sim *sim, int i)
 	pthread_mutex_unlock(&sim->coders[i].compile_mutex);
 	if (get_time_ms() - last >= sim->args.time_to_burnout)
 	{
-		log_burnout(sim, sim->coders[i].id);
 		set_stopped(sim);
+		log_burnout(sim, sim->coders[i].id);
 		return (1);
 	}
 	return (0);

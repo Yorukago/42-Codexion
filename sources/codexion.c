@@ -20,9 +20,15 @@ int	main(int ac, char **av)
 	if (parse_args(ac, av, &sim) != 0)
 		return (1);
 	if (init_sim(&sim) != 0)
+	{
+		cleanup_sim(&sim);
 		return (1);
+	}
 	if (launch_sim(&sim) != 0)
+	{
+		cleanup_sim(&sim);
 		return (1);
+	}
 	cleanup_sim(&sim);
 	return (0);
 }

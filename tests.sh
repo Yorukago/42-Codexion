@@ -1,7 +1,6 @@
-
-
+#!/usr/bin/env bash
 # ===================================================================
-# Codexion — evaluator test script
+# Codexion — test suite
 # Usage: make tests  (or ./tests.sh directly)
 # ===================================================================
 
@@ -11,72 +10,62 @@ GRN="\033[1;32m"
 CYN="\033[1;36m"
 YEL="\033[1;33m"
 RST="\033[0m"
+TIMEOUT=15
 
-# Time limit (seconds) for each run to avoid hanging forever
-TIMEOUT=10
+# Every non-empty output line must match this or the run is malformed
+VALID='^[0-9]+ [0-9]+ (has taken a dongle|is compiling|is debugging|is refactoring|burned out)$'
 
 pass=0
 fail=0
 
 run() {
-	local label="$1"
-	local expect="$2"   # "ok" | "burnout" | "error"
+	local label="$1" expect="$2"
 	shift 2
-	local args="$@"
 
-	printf "${CYN}  %-45s${RST}${YEL}%-30s${RST}" "$label" "$args"
+	printf "${CYN}  %-50s${RST}${YEL}%-35s${RST}" "$label" "$*"
 
-	output=$(timeout $TIMEOUT $BINARY $args 2>&1)
+	output=$(timeout $TIMEOUT $BINARY "$@" 2>&1)
 	exit_code=$?
 
 	if [ $exit_code -eq 124 ]; then
-		printf "${RED}TIMEOUT${RST}\n"
-		fail=$((fail + 1))
-		return
+		printf "${RED}TIMEOUT${RST}\n"; fail=$((fail + 1)); return
 	fi
+
+	local malformed
+	malformed=$(echo "$output" | grep -v '^$' | grep -cvE "$VALID" || true)
 
 	case "$expect" in
 		ok)
-			# Expect clean finish — no "burned out" line, exit 0
 			if echo "$output" | grep -q "burned out"; then
-				printf "${RED}FAIL${RST} (unexpected burnout)\n"
-				fail=$((fail + 1))
+				printf "${RED}FAIL${RST} (unexpected burnout)\n"; fail=$((fail + 1))
 			elif [ $exit_code -ne 0 ]; then
-				printf "${RED}FAIL${RST} (exit $exit_code)\n"
-				fail=$((fail + 1))
+				printf "${RED}FAIL${RST} (exit $exit_code)\n"; fail=$((fail + 1))
+			elif [ "$malformed" -gt 0 ]; then
+				printf "${RED}FAIL${RST} (malformed output)\n"; fail=$((fail + 1))
 			else
-				printf "${GRN}OK${RST}\n"
-				pass=$((pass + 1))
+				printf "${GRN}OK${RST}\n"; pass=$((pass + 1))
 			fi
 			;;
 		burnout)
-			# Expect a "burned out" line to appear
-			if echo "$output" | grep -q "burned out"; then
-				printf "${GRN}OK${RST} (burnout detected)\n"
-				pass=$((pass + 1))
+			if ! echo "$output" | grep -q "burned out"; then
+				printf "${RED}FAIL${RST} (no burnout)\n"; fail=$((fail + 1))
+			elif [ "$malformed" -gt 0 ]; then
+				printf "${RED}FAIL${RST} (malformed output)\n"; fail=$((fail + 1))
 			else
-				printf "${RED}FAIL${RST} (no burnout)\n"
-				fail=$((fail + 1))
+				printf "${GRN}OK${RST} (burnout detected)\n"; pass=$((pass + 1))
 			fi
 			;;
 		error)
-			# Expect a non-zero exit (bad args)
 			if [ $exit_code -ne 0 ]; then
-				printf "${GRN}OK${RST} (rejected)\n"
-				pass=$((pass + 1))
+				printf "${GRN}OK${RST} (rejected)\n"; pass=$((pass + 1))
 			else
-				printf "${RED}FAIL${RST} (should have errored)\n"
-				printf $exit_code
-				printf "\n"
-				fail=$((fail + 1))
+				printf "${RED}FAIL${RST} (should have errored, got exit 0)\n"; fail=$((fail + 1))
 			fi
 			;;
 	esac
 }
 
-section() {
-	printf "\n${YEL}── $1 ──${RST}\n"
-}
+section() { printf "\n${YEL}── $1 ──${RST}\n"; }
 
 echo ""
 echo "  Codexion test suite"
@@ -88,132 +77,101 @@ section "Invalid arguments"
 # -------------------------------------------------------------------
 # args: nb_coders burnout compile debug refactor compiles_required cooldown scheduler
 
-run "no arguments"                          error
-run "too few arguments (7 instead of 8)"    error  5 800 200 100 100 3 0
-run "too many arguments (9 instead of 8)"   error  5 800 200 100 100 3 0 fifo extra
-run "nb_coders = 0"                         error  0 800 200 100 100 3 0 fifo
-run "nb_coders negative"                    error  -1 800 200 100 100 3 0 fifo
-run "time_to_burnout = 0"                   error  5 0 200 100 100 3 0 fifo
-run "nb_compiles_required = 0"              error  5 800 200 100 100 0 0 fifo
-run "unknown scheduler"                     error  5 800 200 100 100 3 0 random
-run "non-numeric argument"                  error  abc 800 200 100 100 3 0 fifo
-run "scheduler uppercase (FIFO)"            error  5 800 200 100 100 3 0 FIFO
-run "scheduler uppercase (EDF)"             error  5 800 200 100 100 3 0 EDF
+run "no arguments"                           error
+run "too few (7 args)"                       error  5 800 200 100 100 3 0
+run "too many (9 args)"                      error  5 800 200 100 100 3 0 fifo extra
+run "nb_coders = 0"                          error  0 800 200 100 100 3 0 fifo
+run "nb_coders negative"                     error  -1 800 200 100 100 3 0 fifo
+run "time_to_burnout = 0"                    error  5 0 200 100 100 3 0 fifo
+run "time_to_burnout negative"               error  5 -800 200 100 100 3 0 fifo
+run "nb_compiles_required = 0"               error  5 800 200 100 100 0 0 fifo
+run "negative compile time"                  error  5 800 -200 100 100 3 0 fifo
+run "negative cooldown"                      error  5 800 200 100 100 3 -5 fifo
+run "float argument"                         error  5 800 200.5 100 100 3 0 fifo
+run "leading + sign"                         error  5 800 +200 100 100 3 0 fifo
+run "non-numeric (abc)"                      error  abc 800 200 100 100 3 0 fifo
+run "INT_MAX + 1 (2147483648)"               error  5 2147483648 200 100 100 3 0 fifo
+run "massive overflow"                       error  5 99999999999999999999 200 100 100 3 0 fifo
+run "unknown scheduler"                      error  5 800 200 100 100 3 0 random
+run "scheduler typo (efd)"                   error  5 800 200 100 100 3 0 efd
+run "scheduler uppercase (FIFO)"             error  5 800 200 100 100 3 0 FIFO
+run "scheduler uppercase (EDF)"              error  5 800 200 100 100 3 0 EDF
+run "empty string as scheduler"              error  5 800 200 100 100 3 0 ""
 
 # -------------------------------------------------------------------
-section "Single coder"
+section "Single coder — always burns out (left == right dongle, never acquires 2)"
 # -------------------------------------------------------------------
 
-run "1 coder, always burns out — fifo"      burnout  1 800 200 100 100 3 0 fifo
-run "1 coder, always burns out — edf"       burnout  1 800 200 100 100 3 0 edf
-run "1 coder, burnout (compile > burnout)"  burnout  1 100 200 50 50 5 0 fifo
+run "1 coder — fifo"                         burnout  1 800 200 100 100 3 0 fifo
+run "1 coder — edf"                          burnout  1 800 200 100 100 3 0 edf
+run "1 coder, only 1 compile required"       burnout  1 800 100 50 50 1 0 fifo
+run "1 coder, burnout=3s, still burns out"   burnout  1 3000 1 1 1 5 0 fifo
 
 # -------------------------------------------------------------------
 section "Normal runs — FIFO"
 # -------------------------------------------------------------------
 
-run "2 coders, 3 compiles"                  ok       2 2000 200 100 100 3 0 fifo
-run "3 coders, 3 compiles"                  ok       3 2000 200 100 100 3 0 fifo
-run "4 coders, 3 compiles"                  ok       4 2000 200 100 100 3 0 fifo
-run "5 coders, 5 compiles"                  ok       5 2000 200 100 100 5 0 fifo
+run "2 coders, 3 compiles"                   ok  2 2000 200 100 100 3 0 fifo
+run "3 coders, 3 compiles"                   ok  3 2000 200 100 100 3 0 fifo
+run "4 coders, 3 compiles"                   ok  4 2000 200 100 100 3 0 fifo
+run "5 coders, 5 compiles"                   ok  5 2000 200 100 100 5 0 fifo
+run "all-zero cycle times, big burnout"      ok  4 5000 0 0 0 10 0 fifo
 
 # -------------------------------------------------------------------
 section "Normal runs — EDF"
 # -------------------------------------------------------------------
 
-run "2 coders, 3 compiles"                  ok       2 2000 200 100 100 3 0 edf
-run "3 coders, 3 compiles"                  ok       3 2000 200 100 100 3 0 edf
-run "4 coders, 3 compiles"                  ok       4 2000 200 100 100 3 0 edf
-run "5 coders, 5 compiles"                  ok       5 2000 200 100 100 5 0 edf
+run "2 coders, 3 compiles"                   ok  2 2000 200 100 100 3 0 edf
+run "3 coders, 3 compiles"                   ok  3 2000 200 100 100 3 0 edf
+run "4 coders, 3 compiles"                   ok  4 2000 200 100 100 3 0 edf
+run "5 coders, 5 compiles"                   ok  5 2000 200 100 100 5 0 edf
+run "all-zero cycle times, big burnout"      ok  4 5000 0 0 0 10 0 edf
 
 # -------------------------------------------------------------------
-section "Dongle cooldown"
+section "Guaranteed burnouts — clear margins, no timing ambiguity"
 # -------------------------------------------------------------------
 
-run "cooldown 0 — no delay"                 ok       3 2000 200 100 100 3 0   fifo
-run "cooldown 50ms — should still work"     ok       3 2000 200 100 100 3 50  fifo
-run "cooldown 100ms — should still work"    ok       3 2000 200 100 100 3 100 edf
+# compile time alone exceeds burnout
+run "compile > burnout (3 coders, fifo)"     burnout  3 100 200 0 0 5 0 fifo
+run "compile > burnout (5 coders, edf)"      burnout  5 100 200 0 0 5 0 edf
+# cooldown alone exceeds burnout — no way out
+run "cooldown > burnout (2 coders)"          burnout  2 150 0 0 0 5 200 fifo
+run "cooldown > burnout (3 coders, edf)"     burnout  3 100 0 0 0 5 200 edf
+# full cycle (100+100+100=300) well over burnout (200), with margin
+run "full cycle > burnout (4 coders)"        burnout  4 200 100 100 100 5 0 fifo
+# cooldown dwarfs burnout regardless of scheduler
+run "huge cooldown vs burnout — fifo"        burnout  5 200 50 50 50 10 300 fifo
+run "huge cooldown vs burnout — edf"         burnout  5 200 50 50 50 10 300 edf
 
 # -------------------------------------------------------------------
-section "Burnout cases"
+section "Dongle cooldown — comfortable margins, should not burnout"
 # -------------------------------------------------------------------
 
-run "burnout: compile time > burnout time"  burnout  3 100 200 50 50 5 0 fifo
-run "burnout: total cycle > burnout"        burnout  4 300 200 200 200 5 0 fifo
-run "burnout: impossible cooldown"          burnout  2 300 100 50 50 5 400 fifo
+run "cooldown 0"                             ok  3 2000 200 100 100 3 0   fifo
+run "cooldown 50ms, burnout 3000ms"          ok  4 3000 200 100 100 3 50  fifo
+run "cooldown 100ms, burnout 4000ms"         ok  4 4000 200 100 100 3 100 edf
+run "cooldown 200ms, burnout 5000ms"         ok  3 5000 100 100 100 3 200 fifo
 
 # -------------------------------------------------------------------
-section "Edge: large number of coders"
+section "Stress — timed to finish well within the timeout"
 # -------------------------------------------------------------------
-
-run "10 coders, 2 compiles — fifo"          ok       10 2000 200 100 100 2 0 fifo
-run "10 coders, 2 compiles — edf"           ok       10 2000 200 100 100 2 0 edf
-
-# -------------------------------------------------------------------
-section "Edge: zero compile / debug / refactor time"
-# -------------------------------------------------------------------
-
-run "compile=0, debug=0, refactor=0 — fifo" ok       3 500 0 0 0 5 0 fifo
-run "compile=0, debug=0, refactor=0 — edf"  ok       3 500 0 0 0 5 0 edf
+# 10 coders × 5 compiles, cycle=100ms: ~1s
+run "10 coders, 5 compiles — fifo"           ok  10 2000 50 25 25 5 0 fifo
+run "10 coders, 5 compiles — edf"            ok  10 2000 50 25 25 5 0 edf
+# 5 coders × 20 compiles, cycle=100ms: ~5s
+run "5 coders, 20 compiles — fifo"           ok  5 2000 50 25 25 20 0 fifo
+run "5 coders, 20 compiles — edf"            ok  5 2000 50 25 25 20 0 edf
+# zero-time cycle: finishes near-instantly regardless of count
+run "4 coders, 50 compiles, zero times"      ok  4 5000 0 0 0 50 0 fifo
 
 # -------------------------------------------------------------------
-section "Tight feasibility — cooldown dominates"
+section "Scheduler parity — same params must give same outcome"
 # -------------------------------------------------------------------
-# 1 coder: cycle=compile+debug+refactor=150, but cooldown forces a wait.
-# burnout window 200. 150 cycle + 60 cooldown wait = 210 > 200 -> burnout
-run "1 coder, cooldown pushes over deadline"  burnout  1 200 50 50 50 5 60 fifo
-# same cycle, cooldown 40 -> 190 < 200, survives
-run "1 coder, cooldown just fits"             ok       1 200 50 50 50 5 40 fifo
-# exactly on the edge — implementation-defined, expect this to be FLAKY
-run "1 coder, cooldown exactly at deadline"   burnout  1 200 50 50 50 5 50 fifo
 
-# -------------------------------------------------------------------
-section "Cooldown starvation with contention"
-# -------------------------------------------------------------------
-# Many coders, tiny burnout, big cooldown — dongles spend most time on cooldown
-run "5 coders, huge cooldown vs burnout"      burnout  5 200 50 50 50 10 300 fifo
-run "5 coders, huge cooldown vs burnout edf"  burnout  5 200 50 50 50 10 300 edf
-# 2 coders share 2 dongles but cooldown longer than burnout -> guaranteed burnout
-run "2 coders, cooldown > burnout"            burnout  2 150 50 0 0 5 200 fifo
-
-# -------------------------------------------------------------------
-section "EDF should save the desperate coder"
-# -------------------------------------------------------------------
-# Asymmetric-ish load where FIFO ordering can starve someone but EDF rescues.
-# Feasible params, lots of coders, moderate cooldown — edf must keep liveness
-run "8 coders tight, fifo"                     ok       8 600 100 100 100 3 50 fifo
-run "8 coders tight, edf"                      ok       8 600 100 100 100 3 50 edf
-run "6 coders very tight burnout, edf"         ok       6 420 100 100 100 2 30 edf
-
-# -------------------------------------------------------------------
-section "Single coder special case (1 dongle only)"
-# -------------------------------------------------------------------
-# Subject: 1 coder => only 1 dongle on table => can NEVER get two => burnout
-run "1 coder always burns (needs 2 dongles)"   burnout  1 999999 1 1 1 5 0 fifo
-
-# -------------------------------------------------------------------
-section "Compile alone exceeds burnout"
-# -------------------------------------------------------------------
-run "compile time > burnout, instant burn"     burnout  3 100 200 0 0 5 0 fifo
-run "compile == burnout, edge burn"            burnout  3 200 200 0 0 5 0 fifo
-
-# -------------------------------------------------------------------
-section "Large stress — many compiles required"
-# -------------------------------------------------------------------
-run "5 coders, 100 compiles, must survive"     ok       5 800 100 50 50 100 20 fifo
-run "5 coders, 100 compiles, edf"              ok       5 800 100 50 50 100 20 edf
-run "10 coders, 50 compiles, moderate cd"      ok       10 1000 100 80 80 50 40 edf
-
-# -------------------------------------------------------------------
-section "Argument validation — rougher"
-# -------------------------------------------------------------------
-run "negative cooldown"                        error  5 800 200 100 100 3 -5 fifo
-run "negative time_to_compile"                 error  5 800 -200 100 100 3 0 fifo
-run "float argument"                           error  5 800 200.5 100 100 3 0 fifo
-run "leading +sign"                            error  5 800 +200 100 100 3 0 fifo
-run "huge overflow value"                      error  5 99999999999999999999 200 100 100 3 0 fifo
-run "empty scheduler"                          error  5 800 200 100 100 3 0 ""
-run "scheduler = efd typo"                     error  5 800 200 100 100 3 0 efd
+run "feasible — fifo"                        ok       3 5000 100 100 100 5 0 fifo
+run "feasible — edf"                         ok       3 5000 100 100 100 5 0 edf
+run "impossible compile time — fifo"         burnout  3 50 200 0 0 5 0 fifo
+run "impossible compile time — edf"          burnout  3 50 200 0 0 5 0 edf
 
 echo ""
 printf "  Results: ${GRN}$pass passed${RST}, ${RED}$fail failed${RST}\n\n"

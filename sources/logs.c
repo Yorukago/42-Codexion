@@ -27,16 +27,12 @@ void	log_status(t_coder *coder, const char *msg)
 {
 	long long	timestamp;
 
-	pthread_mutex_lock(&coder->sim->stop_mutex);
-	if (coder->sim->stopped)
-	{
-		pthread_mutex_unlock(&coder->sim->stop_mutex);
-		return ;
-	}
-	pthread_mutex_unlock(&coder->sim->stop_mutex);
 	pthread_mutex_lock(&coder->sim->log_mutex);
-	timestamp = get_time_ms() - coder->sim->start_time;
-	printf("%lld %d %s\n", timestamp, coder->id, msg);
+	if (!coder->sim->stopped)
+	{
+		timestamp = get_time_ms() - coder->sim->start_time;
+		printf("%lld %d %s\n", timestamp, coder->id, msg);
+	}
 	pthread_mutex_unlock(&coder->sim->log_mutex);
 }
 

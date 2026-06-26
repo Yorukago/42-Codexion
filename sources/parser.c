@@ -6,7 +6,7 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 21:32:39 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/25 22:56:38 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/26 21:36:23 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ int	ft_atoi_strict(const char *str, int *out)
 	*out = (int)n;
 	return (0);
 }
+
 static int	parse_positive(const char *str, int *out)
 {
 	if (ft_atoi_strict(str, out) != 0 || *out <= 0)
