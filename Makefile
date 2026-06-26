@@ -59,6 +59,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 
 clean:
 	@rm -rf $(OBJ_DIR)
+	@rm -rf tests.sh
 	@printf "$(PINK)Objects vanished!$(RESET)\n"
 
 fclean: clean
@@ -68,6 +69,7 @@ fclean: clean
 re: fclean all
 
 tests: all
+#
 	@chmod +x tests.sh
 	@./tests.sh
 

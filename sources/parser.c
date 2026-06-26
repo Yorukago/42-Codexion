@@ -22,23 +22,25 @@
  */
 int	ft_atoi_strict(const char *str, int *out)
 {
-	int	i;
+	int		i;
+	long	n;
 
 	i = 0;
+	n = 0;
 	if (!str || !str[0])
 		return (-1);
 	while (str[i])
 	{
 		if (str[i] < '0' || str[i] > '9')
 			return (-1);
+		n = n * 10 + (str[i] - '0');
+		if (n > INT_MAX)
+			return (-1);
 		i++;
 	}
-	*out = atoi(str);
-	if (*out < 0)
-		return (-1);
+	*out = (int)n;
 	return (0);
 }
-
 static int	parse_positive(const char *str, int *out)
 {
 	if (ft_atoi_strict(str, out) != 0 || *out <= 0)

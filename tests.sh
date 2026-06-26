@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 # ===================================================================
 # Codexion — evaluator test script
@@ -66,6 +66,8 @@ run() {
 				pass=$((pass + 1))
 			else
 				printf "${RED}FAIL${RST} (should have errored)\n"
+				printf $exit_code
+				printf "\n"
 				fail=$((fail + 1))
 			fi
 			;;
@@ -155,6 +157,63 @@ run "compile=0, debug=0, refactor=0 — fifo" ok       3 500 0 0 0 5 0 fifo
 run "compile=0, debug=0, refactor=0 — edf"  ok       3 500 0 0 0 5 0 edf
 
 # -------------------------------------------------------------------
+section "Tight feasibility — cooldown dominates"
+# -------------------------------------------------------------------
+# 1 coder: cycle=compile+debug+refactor=150, but cooldown forces a wait.
+# burnout window 200. 150 cycle + 60 cooldown wait = 210 > 200 -> burnout
+run "1 coder, cooldown pushes over deadline"  burnout  1 200 50 50 50 5 60 fifo
+# same cycle, cooldown 40 -> 190 < 200, survives
+run "1 coder, cooldown just fits"             ok       1 200 50 50 50 5 40 fifo
+# exactly on the edge — implementation-defined, expect this to be FLAKY
+run "1 coder, cooldown exactly at deadline"   burnout  1 200 50 50 50 5 50 fifo
+
+# -------------------------------------------------------------------
+section "Cooldown starvation with contention"
+# -------------------------------------------------------------------
+# Many coders, tiny burnout, big cooldown — dongles spend most time on cooldown
+run "5 coders, huge cooldown vs burnout"      burnout  5 200 50 50 50 10 300 fifo
+run "5 coders, huge cooldown vs burnout edf"  burnout  5 200 50 50 50 10 300 edf
+# 2 coders share 2 dongles but cooldown longer than burnout -> guaranteed burnout
+run "2 coders, cooldown > burnout"            burnout  2 150 50 0 0 5 200 fifo
+
+# -------------------------------------------------------------------
+section "EDF should save the desperate coder"
+# -------------------------------------------------------------------
+# Asymmetric-ish load where FIFO ordering can starve someone but EDF rescues.
+# Feasible params, lots of coders, moderate cooldown — edf must keep liveness
+run "8 coders tight, fifo"                     ok       8 600 100 100 100 3 50 fifo
+run "8 coders tight, edf"                      ok       8 600 100 100 100 3 50 edf
+run "6 coders very tight burnout, edf"         ok       6 420 100 100 100 2 30 edf
+
+# -------------------------------------------------------------------
+section "Single coder special case (1 dongle only)"
+# -------------------------------------------------------------------
+# Subject: 1 coder => only 1 dongle on table => can NEVER get two => burnout
+run "1 coder always burns (needs 2 dongles)"   burnout  1 999999 1 1 1 5 0 fifo
+
+# -------------------------------------------------------------------
+section "Compile alone exceeds burnout"
+# -------------------------------------------------------------------
+run "compile time > burnout, instant burn"     burnout  3 100 200 0 0 5 0 fifo
+run "compile == burnout, edge burn"            burnout  3 200 200 0 0 5 0 fifo
+
+# -------------------------------------------------------------------
+section "Large stress — many compiles required"
+# -------------------------------------------------------------------
+run "5 coders, 100 compiles, must survive"     ok       5 800 100 50 50 100 20 fifo
+run "5 coders, 100 compiles, edf"              ok       5 800 100 50 50 100 20 edf
+run "10 coders, 50 compiles, moderate cd"      ok       10 1000 100 80 80 50 40 edf
+
+# -------------------------------------------------------------------
+section "Argument validation — rougher"
+# -------------------------------------------------------------------
+run "negative cooldown"                        error  5 800 200 100 100 3 -5 fifo
+run "negative time_to_compile"                 error  5 800 -200 100 100 3 0 fifo
+run "float argument"                           error  5 800 200.5 100 100 3 0 fifo
+run "leading +sign"                            error  5 800 +200 100 100 3 0 fifo
+run "huge overflow value"                      error  5 99999999999999999999 200 100 100 3 0 fifo
+run "empty scheduler"                          error  5 800 200 100 100 3 0 ""
+run "scheduler = efd typo"                     error  5 800 200 100 100 3 0 efd
 
 echo ""
 printf "  Results: ${GRN}$pass passed${RST}, ${RED}$fail failed${RST}\n\n"
