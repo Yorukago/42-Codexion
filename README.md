@@ -218,7 +218,6 @@ Helgrind can be noisy or version-sensitive; if you use it, ensure all mutexes ar
 In accordance with Chapter II instructions, AI tools were used to support this project:
 
 * **Concept simplification:** analogies and explanations around synchronization and scheduling.
-* **Architecture design:** early structure for the heap-based wait queues and Makefile layout.
 * **Debugging:** systematic review of races, deadlocks, cleanup order, and edge cases (e.g. single coder, stop while waiting on a cond).
 
 ---
