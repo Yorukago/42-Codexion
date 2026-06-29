@@ -6,7 +6,7 @@
 #    By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/05/29 13:28:38 by jzorreta          #+#    #+#              #
-#    Updated: 2026/06/26 21:43:27 by jzorreta         ###   ########.fr        #
+#    Updated: 2026/06/29 11:47:45 by jzorreta         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,7 +59,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 
 clean:
 	@rm -rf $(OBJ_DIR)
- 	@rm -rf tests.sh
+	@rm -rf tests.sh
 	@printf "$(PINK)Objects vanished!$(RESET)\n"
 
 fclean: clean
