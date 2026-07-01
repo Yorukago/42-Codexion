@@ -6,27 +6,11 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/08 14:43:50 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/25 22:55:32 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/07/01 15:09:58 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-/* Removes and returns the root (highest-priority) element
-   Replaces it with the last element and sifts down to restore order
-   Returns a zeroed waiter if the heap is empty. */
-t_waiter	heap_pop(t_heap *heap)
-{
-	t_waiter	root;
-
-	if (heap->size <= 0)
-		return ((t_waiter){0, 0});
-	root = heap->data[0];
-	heap->data[0] = heap->data[heap->size - 1];
-	heap->size--;
-	bubble_down(heap, 0);
-	return (root);
-}
 
 /* Allocates the backing array. Returns -1 on malloc failure */
 int	heap_init(t_heap *heap, int capacity)
@@ -52,6 +36,22 @@ t_waiter	heap_peek(t_heap *heap)
 		return (empty);
 	}
 	return (heap->data[0]);
+}
+
+/* Removes and returns the root (highest-priority) element
+   Replaces it with the last element and sifts down to restore order
+   Returns a zeroed waiter if the heap is empty. */
+t_waiter	heap_pop(t_heap *heap)
+{
+	t_waiter	root;
+
+	if (heap->size <= 0)
+		return ((t_waiter){0, 0});
+	root = heap->data[0];
+	heap->data[0] = heap->data[heap->size - 1];
+	heap->size--;
+	bubble_down(heap, 0);
+	return (root);
 }
 
 /* Appends the new element at the end and sifts it up */

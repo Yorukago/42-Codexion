@@ -6,14 +6,17 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 23:11:03 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/30 20:48:06 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/07/01 15:16:36 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /* Acquires both dongles in a consistent order (lower id first) to avoid
-   deadlock. Returns 1 on success, 0 if the sim stopped mid-acquire */
+   deadlock. Returns 1 on success, 0 if the sim stopped mid-acquire,
+   tries to take the first dongle, if failed returns 0, if successful
+   continues to take the second dongle if failed, releases the first one
+   and returns 0, if all works, returns 1 */
 static int	acquire_dongles(t_coder *coder)
 {
 	t_dongle	*first;
@@ -45,13 +48,13 @@ static int	acquire_dongles(t_coder *coder)
    then releases both dongles so neighbours can proceed */
 static void	do_compile(t_coder *coder)
 {
-    log_status(coder, "is compiling");
-    pthread_mutex_lock(&coder->compile_mutex);
-    coder->last_compile_start = get_time_ms();
-    pthread_mutex_unlock(&coder->compile_mutex);
-    usleep(coder->sim->args.time_to_compile * 1000);
-    release_dongle(coder->left_dongle);
-    release_dongle(coder->right_dongle);
+	log_status(coder, "is compiling");
+	pthread_mutex_lock(&coder->compile_mutex);
+	coder->last_compile_start = get_time_ms();
+	pthread_mutex_unlock(&coder->compile_mutex);
+	usleep(coder->sim->args.time_to_compile * 1000);
+	release_dongle(coder->left_dongle);
+	release_dongle(coder->right_dongle);
 }
 
 /* Runs the debug + refactor phases after a compile and increments the
