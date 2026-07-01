@@ -6,12 +6,20 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/06 19:42:52 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/25 23:09:30 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/07/01 14:09:38 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CODEXION_H
 # define CODEXION_H
+
+# define COLOR_COMPILE	"\033[38;2;173;216;230m"
+# define COLOR_DEBUG	"\033[38;2;255;105;180m"
+# define COLOR_REFACTOR	"\033[38;2;189;147;249m"
+# define COLOR_DONGLE	"\033[38;2;255;255;255m"
+# define COLOR_BURNOUT	"\033[38;2;255;0;0m"
+# define COLOR_ERROR	"\033[38;2;255;0;0m"
+# define COLOR_RESET	"\033[0m"
 
 # include <pthread.h>
 # include <stdio.h>

@@ -6,7 +6,7 @@
 /*   By: jzorreta <jzorreta@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/07 23:42:17 by jzorreta          #+#    #+#             */
-/*   Updated: 2026/06/26 15:04:47 by jzorreta         ###   ########.fr       */
+/*   Updated: 2026/06/30 21:56:29 by jzorreta         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,20 @@ int	should_swap(t_heap *heap, int i, int p)
 	return (0);
 }
 
+/* Returns the index (a or b) whose element has higher priority.
+   Uses the same ordering as should_swap. !! */
+int	highest_priority(t_heap *heap, int a, int b)
+{
+	if (heap->data[a].priority < heap->data[b].priority)
+		return (a);
+	if (heap->data[a].priority == heap->data[b].priority)
+	{
+		if (heap->data[a].coder_id < heap->data[b].coder_id)
+			return (a);
+	}
+	return (b);
+}
+
 /* Sifts element at index i up toward the root until heap order holds. */
 void	bubble_up(t_heap *heap, int i)
 {
@@ -46,20 +60,6 @@ void	bubble_up(t_heap *heap, int i)
 		heap_swap(heap, i, p);
 		i = p;
 	}
-}
-
-/* Returns the index (a or b) whose element has higher priority.
-   Uses the same ordering as should_swap. !! */
-int	highest_priority(t_heap *heap, int a, int b)
-{
-	if (heap->data[a].priority < heap->data[b].priority)
-		return (a);
-	if (heap->data[a].priority == heap->data[b].priority)
-	{
-		if (heap->data[a].coder_id < heap->data[b].coder_id)
-			return (a);
-	}
-	return (b);
 }
 
 /* Sifts element at index i down until both children have lower priority. */

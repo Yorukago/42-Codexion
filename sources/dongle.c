@@ -48,11 +48,9 @@ static void	wait_for_dongle(t_dongle *dongle)
 	pthread_cond_timedwait(&dongle->cond, &dongle->mutex, &ts);
 }
 
-/* Atomically queues and acquires the dongle for a coder
-   Under EDF the priority is refreshed each wait loop so the heap
-   always reflects current deadlines
-   Returns 0 on success, -1 if the simulation stopped while waiting */
-static int	wait_loop(t_coder *coder, t_dongle *dongle, long long *priority)
+/* Waits until the coder reaches the front of the queue and the dongle
+   is free. Returns 0 on success, -1 if the simulation stopped while waiting */
+static int	wait_loop(t_coder *coder, t_dongle *dongle)
 {
 	while (!can_take(coder, dongle))
 	{
@@ -62,12 +60,6 @@ static int	wait_loop(t_coder *coder, t_dongle *dongle, long long *priority)
 			pthread_mutex_unlock(&dongle->mutex);
 			return (-1);
 		}
-		if (coder->sim->args.scheduler == EDF)
-		{
-			*priority = get_priority(coder);
-			heap_remove_by_coder_id(&dongle->queue, coder->id);
-			heap_push(&dongle->queue, coder->id, *priority);
-		}
 		wait_for_dongle(dongle);
 	}
 	return (0);
@@ -75,12 +67,9 @@ static int	wait_loop(t_coder *coder, t_dongle *dongle, long long *priority)
 
 int	take_dongle(t_coder *coder, t_dongle *dongle)
 {
-	long long	priority;
-
 	pthread_mutex_lock(&dongle->mutex);
-	priority = get_priority(coder);
-	heap_push(&dongle->queue, coder->id, priority);
-	if (wait_loop(coder, dongle, &priority) != 0)
+	heap_push(&dongle->queue, coder->id, get_priority(coder));
+	if (wait_loop(coder, dongle) != 0)
 		return (-1);
 	heap_pop(&dongle->queue);
 	dongle->is_taken = 1;
